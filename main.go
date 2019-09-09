@@ -30,7 +30,14 @@ func main() {
 
 	//func (b *Buffer) Write(p []byte) (n int, err error) {
 	//(p []byte) (n int, err error)
-	host := os.Getenv("host")
+	timeout := fmt.Sprintf("%ss", os.Getenv("TIMEOUT")) //in seconds
+	if timeout == "s" {
+		timeout = "2s" //sec
+	}
+	fmt.Println(timeout)
+	d, err := time.ParseDuration(timeout)
+	check(err)
+	host := os.Getenv("HOST")
 	if host == "" {
 		host = "localhost"
 	}
@@ -39,7 +46,7 @@ func main() {
 	conn := struct {
 		Host string
 	}{host}
-	err := template.Must(template.New("name").
+	err = template.Must(template.New("name").
 		Parse("mongodb://{{.Host}}:27017")).Execute(&t, conn)
 	check(err)
 
@@ -51,7 +58,7 @@ func main() {
 
 	check(err)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), d)
 	defer cancel()
 	err = client.Connect(ctx)
 
